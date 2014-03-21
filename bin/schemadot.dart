@@ -37,7 +37,7 @@ to the file, otherwise written to stdout.
 
 //! Method to parse command line options.
 //! The result is a map containing all options, including positional options
-Map _parseArgs() { 
+Map _parseArgs(args) { 
   ArgResults argResults;
   Map result = { };
   List remaining = [];
@@ -57,7 +57,7 @@ Map _parseArgs() {
       allowed: null);
 
     /// Parse the command line options (excluding the script)
-    var arguments = new Options().arguments;
+    var arguments = args;
     argResults = _parser.parse(arguments);
     argResults.options.forEach((opt) { 
       result[opt] = argResults[opt];
@@ -73,11 +73,11 @@ Map _parseArgs() {
 
 final _logger = new Logger("schemadot");
 
-main() { 
+main(List<String> args) { 
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Logger.root.level = Level.INFO;
-  Map argResults = _parseArgs();
+  Map argResults = _parseArgs(args);
   Map options = argResults['options'];
   List positionals = argResults['rest'];
 
@@ -109,6 +109,9 @@ main() {
     File target = new File(uri.toString());
     if(target.existsSync()) {
       completer.complete(target.readAsStringSync());
+    }
+    else {
+      print('file does not exist');
     }
   }
 
