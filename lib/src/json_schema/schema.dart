@@ -39,6 +39,7 @@ class Schema {
   String get ref => _ref;
   String get description => _description;
   String get title => _title;
+  String get source => _source;
   List<SchemaType> get schemaTypeList => _schemaTypeList;
   /// To match all items to a schema
   Schema get items => _items;
@@ -406,6 +407,7 @@ class Schema {
     }
   }
   _getTitle(dynamic value) => _title = _requireString("title", value);
+  _getSource(dynamic value) => _source = _requireString("source", value);
   _getDescription(dynamic value) =>
     _description = _requireString("description", value);
   _getDefault(dynamic value) => _defaultValue = value;
@@ -446,6 +448,7 @@ class Schema {
     "\$ref" : (s, v) => s._getRef(v),
     "\$schema" : (s, v) => s._getSchema(v),
     "title" : (s, v) => s._getTitle(v),
+    "source" : (s, v) => s._getSource(v),
     "description" : (s, v) => s._getDescription(v),
     "format" : (s, v) => s._getFormat(v),
   };
@@ -582,6 +585,7 @@ class Schema {
   String _ref;
   String _description;
   String _title;
+  String _source;
   List<SchemaType> _schemaTypeList;
   Schema _items;
   List<Schema> _itemsList;

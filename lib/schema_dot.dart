@@ -19,10 +19,14 @@ class SchemaNode {
 
   SchemaNode(Schema this.schema, [ this.links ]) {
     if(links==null) links=[];
+
+    print(schema.path);
   }
 
   static bool schemaShown(Schema schema) =>
+    !schema.path.contains('patternProperties') && (
     schema.properties.length > 0 || 
+    schema.patternProperties.length > 0 ||
     schema.definitions.length > 0 ||
     schema.anyOf.length > 0 ||
     schema.oneOf.length > 0 ||
@@ -31,7 +35,7 @@ class SchemaNode {
     schema.additionalPropertiesSchema != null ||
     schema.minimum != null ||
     schema.maximum != null ||
-    schema.ref != null;
+    schema.ref != null);
 
   String get nodes {
     List lines = schema.refMap.values
@@ -81,12 +85,16 @@ class SchemaNode {
   }
 
   List<String> get label {
+    var color = 'wheat';
+    if (schema.source !=null && schema.source == 'external')
+      color = '#AB9B7D';
+
     return
     [ 'label =<' ]
     ..add('<table border="0" cellborder="0" cellpadding="1" bgcolor="white">')
-    ..add(wrap(schema.path, port : "@path"))
+    ..add(wrap(schema.path, port : "@path", color: color))
     ..add(wrap(title))
-    ..add(wrap(description))
+    ..add(wrap(description, color: color))
     ..addAll(definitionEntries)
     ..addAll(propertyEntries)
     ..addAll(additionalPropertiesSchema)
@@ -239,7 +247,39 @@ class SchemaNode {
   
   List<String> get propertyEntries {
     List<String> props = [];
-    if(schema.properties.length > 0) {
+
+    if(schema.patternProperties.length > 0) {
+      props.add(wrap('Properties'));
+      var sortedProps = new List.from(schema.patternProperties.keys)..sort();
+      sortedProps.forEach((prop) {
+        if(schema.patternProperties[prop].properties.length > 0) {
+          var sortedProps2 = new List.from(schema.patternProperties[prop].properties.keys)..sort();
+          sortedProps2.forEach((prop2) {
+            var propertySchema = schema.patternProperties[prop].properties[prop2];
+            String requirePrefix = 
+              schema.propertyRequired(prop2)? '! ' : '? ';
+            String port = "@$prop2";
+
+            if (schemaShown(propertySchema)) {
+              makeSchemaLink(port, schema, propertySchema);
+            } else if (propertySchema.items is Schema &&
+                schemaShown(propertySchema.items)) {
+              makeSchemaLink(port, schema, propertySchema.items);
+
+            }
+            props.add(
+              wrapRowDistinct(
+                "$requirePrefix$prop2",
+                abbreviatedString(schemaType(propertySchema).toString(), 30),
+                port));
+
+          });
+
+        }
+
+      });
+    }
+    else if(schema.properties.length > 0) {
       props.add(wrap('Properties'));
       var sortedProps = new List.from(schema.properties.keys)..sort();
       sortedProps.forEach((prop) {
