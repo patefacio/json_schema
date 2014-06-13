@@ -91,10 +91,27 @@ class Schema {
     }
   }
 
+  // Cusotm creation schema form file Path without FUTURE
+  static Schema createSchemaFromFilePathSync(String schemaUrl) {
+      Uri uri = Uri.parse(schemaUrl);
+      if(uri.scheme == 'file' || uri.scheme == '') {
+        File fl = new File(uri.scheme == 'file'?
+            uri.toFilePath() : schemaUrl);
+						return createSchemaSync(convert.JSON.decode(fl.readAsStringSync()));
+      } else {
+        throw new
+          FormatException("Url schemd must be http, file, or empty: $schemaUrl");
+      }
+    }
+
   /// Create a schema from a [data]
   ///  Typically [data] is result of JSON.decode(jsonSchemaString)
   static Future<Schema> createSchema(Map data) =>
     new Schema._fromRootMap(data)._thisCompleter.future;
+
+  //Create a schema from a [data] same as 'createSchema' but without completer.future
+  static Schema createSchemaSync(Map data) =>
+    new Schema._fromRootMap(data);
 
   /// Validate [instance] against this schema
   bool validate(dynamic instance) =>
