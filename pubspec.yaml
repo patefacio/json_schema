@@ -7,16 +7,12 @@ description: >
 dependencies:
   path: ">=1.0.0 < 1.10.0"
   logging: ">=0.8.0 <0.10.0"
-
-# custom <json_schema dependencies>
-
-# end <json_schema dependencies>
-
-dev_dependencies:
+# dev_dependencies:
   unittest: ">=0.9.0 < 0.11.0"
   browser: "any"
   hop: ">=0.27.0"
   hop_docgen: ">=0.1.0 <0.2.0"
+  args: any
 
 # custom <json_schema dev dependencies>
 
