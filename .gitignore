@@ -2,6 +2,7 @@
 .packages
 packages
 build/
+.dart_tool/
 .pub/
 .project
 *.iml
@@ -15,4 +16,3 @@ build/
 # custom <additional>
 pubspec.lock
 # end <additional>
-

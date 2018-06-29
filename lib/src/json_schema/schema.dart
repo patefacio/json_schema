@@ -613,7 +613,7 @@ class Schema {
 
   /// Maps any non-key top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
-  Completer _thisCompleter = new Completer();
+  Completer<Schema> _thisCompleter = new Completer<Schema>();
   List<Future<Schema>> _retrievalRequests = [];
 
   /// Set of strings to gaurd against path cycles
