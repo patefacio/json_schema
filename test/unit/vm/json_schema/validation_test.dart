@@ -226,9 +226,6 @@ void main([List<String> args]) {
     // equivalent to the JSON input.
     'integer : a bignum is an integer',
     'integer : a negative bignum is an integer',
-    // Dart parses URI's different than the spec expects regarding / and ~.
-    'escaped pointer ref : slash valid',
-    'escaped pointer ref : tilda valid',
   ];
 
   // Run all tests asynchronously with no ref provider.
