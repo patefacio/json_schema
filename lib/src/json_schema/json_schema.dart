@@ -1094,8 +1094,7 @@ class JsonSchema {
     Note: This information is useful for drawing dependency graphs, etc, but should not be used for general
     validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
     to get the [JsonSchema] at any path, instead.
-    This functionality will be removed in 3.0.
-      ''')
+  ''')
   Map<String, JsonSchema> get refMap => _refMap;
 
   /// Properties that must be inclueded for the [JsonSchema] to be valid.
