@@ -87,8 +87,8 @@ Display this help screen
         abbr: 'h',
         defaultsTo: false);
 
-    _parser.addOption('in-uri', help: '', defaultsTo: null, allowMultiple: false, abbr: 'i', allowed: null);
-    _parser.addOption('out-file', help: '', defaultsTo: null, allowMultiple: false, abbr: 'o', allowed: null);
+    _parser.addOption('in-uri', help: '', defaultsTo: null, abbr: 'i', allowed: null);
+    _parser.addOption('out-file', help: '', defaultsTo: null, abbr: 'o', allowed: null);
     _parser.addOption('log-level',
         help: r'''
 Select log level from:
@@ -97,7 +97,6 @@ Select log level from:
 
 ''',
         defaultsTo: null,
-        allowMultiple: false,
         abbr: null,
         allowed: null);
 

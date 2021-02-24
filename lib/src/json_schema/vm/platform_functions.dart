@@ -41,7 +41,6 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert' as convert;
 
-
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
@@ -57,7 +56,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {SchemaVersion schema
     // Fetch the response
     final response = await httpRequest.close();
     // Convert the response into a string
-    if (response.statusCode == HttpStatus.NOT_FOUND) {
+    if (response.statusCode == HttpStatus.notFound) {
       throw new ArgumentError('Schema at URL: $schemaUrl can\'t be found.');
     }
     final schemaText = await new convert.Utf8Decoder().bind(response).join();

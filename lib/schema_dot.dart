@@ -45,15 +45,15 @@ import 'package:json_schema/json_schema.dart';
 ///
 @Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 class SchemaNode {
+  SchemaNode(this.schema, [this.links]) {
+    if (links == null) links = [];
+  }
+
   /// Referenced schema this node portrays
   JsonSchema schema;
 
   /// List of links (resulting in graph edge) from this node to another
   List<String> links;
-
-  SchemaNode(this.schema, [this.links]) {
-    if (links == null) links = [];
-  }
 
   static bool schemaShown(JsonSchema schema) =>
       schema.properties.length > 0 ||
