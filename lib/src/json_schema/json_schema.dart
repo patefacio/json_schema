@@ -1147,7 +1147,7 @@ This functionality will be removed in 3.0.
   JsonSchema _addSchemaToRefMap(String path, JsonSchema schema) => _refMap[path] = schema;
 
   // Create a [JsonSchema] from a sub-schema of the root.
-  _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
+  _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid = true}) {
     var throwError;
 
     if (schema is bool && schemaVersion != SchemaVersion.draft6)
