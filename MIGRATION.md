@@ -1,3 +1,10 @@
+# json_schema v2.x to v3 Migration Guide
+
+json_schema 3.0 is now here due to an issue that was found in 2.0 that caused remote refs to not get resolved correctly. This forced us to sort through the ref resolution logic in schema construction and change a few underlying assumptions. While on the surface it doesn't look like any publically exposed members or methods were modified or removed, the map of sub-properties' and references' [JsonSchema]s by path (`_refMap`) is structured differently to accommodate new logic changes in schema construction and resolution.
+
+All tests continue to pass and most consumers will not have to make any changes, but for some more advanced use cases, these changes might break schema resolution/validation which we prefer to protect against with a 3.0 major version upgrade.
+
+
 # json_schema v1.x to v2 Migration Guide
 
 json_schema 2.0 is here, and is packed with useful updates! We've tried to minimize incompatibilities, while taking steps to build for the future. These include:

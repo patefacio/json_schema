@@ -118,9 +118,13 @@ void main([List<String> args]) {
                 final instance = validationTest['data'];
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
+
                 if (isSync) {
-                  final schema =
-                      JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion, refProvider: refProvider);
+                  final schema = JsonSchema.createSchema(
+                    schemaData,
+                    schemaVersion: schemaVersion,
+                    refProvider: refProvider,
+                  );
                   validationResult = schema.validate(instance);
                   expect(validationResult, expectedResult);
                 } else {

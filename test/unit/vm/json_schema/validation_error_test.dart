@@ -606,9 +606,9 @@ void main() {
     group('reference', () {
       final schemaJson = {
         'properties': {
-          'minItems': {"minItems": 2},
-          'maxItems': {"maxItems": 2},
-          'minLength': {"\$ref": "#/properties/refDestination"},
+          'minItems': {'minItems': 2},
+          'maxItems': {'maxItems': 2},
+          'minLength': {'\$ref': '#/properties/refDestination'},
           'refDestination': {'minLength': 5},
           'maxLength': {'\$ref': 'http://localhost/destination.json'},
           'stringArray': {
@@ -620,7 +620,7 @@ void main() {
 
       final RefProvider syncRefProvider = (String ref) {
         final refs = {
-          'http://localhost/destination.json': {"maxLength": 2}
+          'http://localhost/destination.json': {'maxLength': 2}
         };
 
         return JsonSchema.createSchema(refs[ref]);

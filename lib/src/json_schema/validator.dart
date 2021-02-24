@@ -494,6 +494,13 @@ class Validator {
       instance = Instance(instance);
     }
 
+    /// If the [JsonSchema] being validated is a ref, pull the ref
+    /// from the [refMap] instead.
+    while (schema.ref != null) {
+      final String path = schema.root.endPath(schema.ref.toString());
+      schema = schema.root.refMap[path];
+    }
+
     /// If the [JsonSchema] is a bool, always return this value.
     if (schema.schemaBool != null) {
       if (schema.schemaBool == false) {
@@ -503,12 +510,6 @@ class Validator {
       return;
     }
 
-    /// If the [JsonSchema] being validated is a ref, pull the ref
-    /// from the [refMap] instead.
-    if (schema.ref != null) {
-      final String path = schema.root.endPath(schema.ref.toString());
-      schema = schema.root.refMap[path];
-    }
     _typeValidation(schema, instance);
     _constValidation(schema, instance);
     _enumValidation(schema, instance);

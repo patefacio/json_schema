@@ -74,7 +74,7 @@ void main([List<String> args]) {
           test(description, () async {
             final catchException = expectAsync1((e) {
               _logger.info('Caught expected $e');
-              if (!(e is FormatException)) {
+              if (e is! FormatException) {
                 _logger.info('${shortName} threw an unexpected error type of ${e.runtimeType}');
               }
               expect(e is FormatException, true);
