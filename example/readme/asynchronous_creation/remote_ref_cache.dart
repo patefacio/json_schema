@@ -38,7 +38,7 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
-import 'package:dart2_constant/convert.dart';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:json_schema/json_schema.dart';

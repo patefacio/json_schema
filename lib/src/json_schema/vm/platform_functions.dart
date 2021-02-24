@@ -36,11 +36,11 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert' as convert;
 
-import 'package:dart2_constant/convert.dart' as convert2;
 
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
@@ -61,10 +61,10 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {SchemaVersion schema
       throw new ArgumentError('Schema at URL: $schemaUrl can\'t be found.');
     }
     final schemaText = await new convert.Utf8Decoder().bind(response).join();
-    schemaMap = convert2.json.decode(schemaText);
+    schemaMap = json.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
     final fileString = await new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl).readAsString();
-    schemaMap = convert2.json.decode(fileString);
+    schemaMap = json.decode(fileString);
   } else {
     throw new FormatException('Url schema must be http, file, or empty: $schemaUrl');
   }

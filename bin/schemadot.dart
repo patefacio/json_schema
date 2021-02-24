@@ -46,8 +46,7 @@
 /// the file, otherwise written to stdout.
 ///
 import 'dart:async';
-import 'package:dart2_constant/convert.dart' as convert2;
-import 'dart:convert' as convert;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -161,7 +160,7 @@ main(List<String> args) {
     new HttpClient()
         .getUrl(uri)
         .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) => new convert.Utf8Decoder().bind(response).join())
+        .then((HttpClientResponse response) => new Utf8Decoder().bind(response).join())
         .then((text) {
       completer.complete(text);
     });
@@ -173,7 +172,7 @@ main(List<String> args) {
   }
 
   completer.future.then((schemaText) {
-    final Future schema = JsonSchema.createSchemaAsync(convert2.json.decode(schemaText));
+    final Future schema = JsonSchema.createSchemaAsync(json.decode(schemaText));
     schema.then((schema) {
       final String dot = createDot(schema);
       if (options['out-file'] != null) {

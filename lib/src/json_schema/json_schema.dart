@@ -37,9 +37,9 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:dart2_constant/convert.dart';
 import 'package:path/path.dart' as path_lib;
 
 import 'package:json_schema/src/json_schema/constants.dart';

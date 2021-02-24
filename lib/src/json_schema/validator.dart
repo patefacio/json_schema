@@ -36,7 +36,7 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart2_constant/convert.dart';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:json_schema/src/json_schema/constants.dart';
