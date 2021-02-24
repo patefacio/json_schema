@@ -52,13 +52,13 @@ Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {SchemaVersion s
   }
   if (uri.scheme != 'file') {
     // _logger.info('Getting url $uri'); TODO: re-add logger.
-    final response = await (new JsonRequest()..uri = uri).get();
+    final response = await (JsonRequest()..uri = uri).get();
     // HTTP servers ignore fragments, so resolve a sub-map if a fragment was specified.
     final parentSchema =
         await JsonSchema.createSchemaAsync(response.body.asJson(), schemaVersion: schemaVersion, fetchedFromUri: uri);
     final schema = JsonSchemaUtils.getSubMapFromFragment(parentSchema, uriWithFrag);
     return schema ?? parentSchema;
   } else {
-    throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
+    throw FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
   }
 }

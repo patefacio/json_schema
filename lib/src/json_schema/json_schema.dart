@@ -37,9 +37,9 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:dart2_constant/convert.dart';
 import 'package:path/path.dart' as path_lib;
 
 import 'package:json_schema/src/json_schema/constants.dart';
@@ -51,11 +51,11 @@ import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/validator.dart';
 import 'package:json_schema/src/json_schema/typedefs.dart';
 
-typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
-typedef SchemaAssigner(JsonSchema s);
-typedef SchemaAdder(JsonSchema s);
-typedef Future<JsonSchema> AsyncRetrievalOperation();
-typedef JsonSchema SyncRetrievalOperation();
+typedef SchemaPropertySetter = dynamic Function(JsonSchema s, dynamic value);
+typedef SchemaAssigner = Function(JsonSchema s);
+typedef SchemaAdder = Function(JsonSchema s);
+typedef AsyncRetrievalOperation = Future<JsonSchema> Function();
+typedef SyncRetrievalOperation = JsonSchema Function();
 
 class RetrievalRequest {
   Uri schemaUri;
@@ -120,7 +120,7 @@ class JsonSchema {
       try {
         data = json.decode(schema);
       } catch (e) {
-        throw new ArgumentError('String data provided to createSchemaAsync is not valid JSON.');
+        throw ArgumentError('String data provided to createSchemaAsync is not valid JSON.');
       }
     }
 
@@ -128,19 +128,18 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion,
-              fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
+      return JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
           ._thisCompleter
           .future;
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == SchemaVersion.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion,
+      return JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
           ._thisCompleter
           .future;
     }
-    throw new ArgumentError(
+    throw ArgumentError(
         'Data provided to createSchemaAsync is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
@@ -162,7 +161,7 @@ class JsonSchema {
       try {
         data = json.decode(schema);
       } catch (e) {
-        throw new ArgumentError('String data provided to createSchema is not valid JSON.');
+        throw ArgumentError('String data provided to createSchema is not valid JSON.');
       }
     }
 
@@ -170,17 +169,17 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion,
+      return JsonSchema._fromRootMap(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == SchemaVersion.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion,
+      return JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
     }
-    throw new ArgumentError(
+    throw ArgumentError(
         'Data provided to createSchema is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
@@ -190,7 +189,7 @@ class JsonSchema {
   /// properties, and sub-properties of the root schema.
   static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {SchemaVersion schemaVersion}) {
     if (globalCreateJsonSchemaFromUrl == null) {
-      throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
+      throw StateError('no globalCreateJsonSchemaFromUrl defined!');
     }
     return globalCreateJsonSchemaFromUrl(schemaUrl, schemaVersion: schemaVersion);
   }
@@ -221,7 +220,7 @@ class JsonSchema {
       }
       _path = '#';
       _addSchemaToRefMap(_path, this);
-      _thisCompleter = new Completer<JsonSchema>();
+      _thisCompleter = Completer<JsonSchema>();
     } else {
       _isSync = _root._isSync;
       _refProvider = _root._refProvider;
@@ -434,7 +433,7 @@ class JsonSchema {
     if (result == null) {
       final schema = _freeFormMap[path];
       if (schema is! Map) throw FormatExceptions.schema('free-form property $original at $path', schema);
-      return new JsonSchema._fromMap(_root, schema, path);
+      return JsonSchema._fromMap(_root, schema, path);
     }
 
     // Follow the refs until a schema without a ref is reached.
@@ -457,13 +456,13 @@ class JsonSchema {
     assert(!_refMap.containsKey(path));
 
     if (schemaDefinition is Map) {
-      return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
+      return JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (schemaDefinition is bool && schemaVersion == SchemaVersion.draft6) {
-      return new JsonSchema._fromBool(_root, schemaDefinition, path, parent: this);
+      return JsonSchema._fromBool(_root, schemaDefinition, path, parent: this);
     }
-    throw new ArgumentError(
+    throw ArgumentError(
         'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
@@ -650,7 +649,7 @@ class JsonSchema {
   Set<Uri> _localRefs = Set<Uri>();
 
   /// Set of strings to gaurd against path cycles.
-  Set<String> _pathsEncountered = new Set();
+  Set<String> _pathsEncountered = Set();
 
   /// HTTP(S) requests to fetch ref'd schemas.
   List<RetrievalRequest> _retrievalRequests = [];
@@ -664,7 +663,7 @@ class JsonSchema {
   Map<String, String> _schemaRefs = {};
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
-  Completer<JsonSchema> _thisCompleter = new Completer<JsonSchema>();
+  Completer<JsonSchema> _thisCompleter = Completer<JsonSchema>();
 
   bool _isSync = false;
 
@@ -725,7 +724,7 @@ class JsonSchema {
   };
 
   /// Map to allow getters to be accessed by String key.
-  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()
+  static Map<String, SchemaPropertySetter> _accessMapV4 = Map<String, SchemaPropertySetter>()
     ..addAll(_baseAccessMap)
     ..addAll({
       // Add properties that are changed incompatibly later.
@@ -735,7 +734,7 @@ class JsonSchema {
       'required': (JsonSchema s, dynamic v) => s._setRequired(v),
     });
 
-  static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()
+  static Map<String, SchemaPropertySetter> _accessMapV6 = Map<String, SchemaPropertySetter>()
     ..addAll(_baseAccessMap)
     ..addAll({
       // Note: see http://json-schema.org/draft-06/json-schema-release-notes.html
@@ -756,11 +755,10 @@ class JsonSchema {
   JsonSchema resolvePath(String path) => _getSchemaFromPath(path);
 
   @override
-  bool operator ==(dynamic other) =>
-      other is JsonSchema && new DeepCollectionEquality().equals(schemaMap, other.schemaMap);
+  bool operator ==(dynamic other) => other is JsonSchema && DeepCollectionEquality().equals(schemaMap, other.schemaMap);
 
   @override
-  int get hashCode => new DeepCollectionEquality().hash(schemaMap);
+  int get hashCode => DeepCollectionEquality().hash(schemaMap);
 
   @override
   String toString() => '${_schemaBool ?? _schemaMap}';
@@ -1133,7 +1131,7 @@ class JsonSchema {
         _refProvider != null ? () => addSchemaFunction(_refProvider(ref.toString())) : null;
 
     /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
-    _root._retrievalRequests.add(new RetrievalRequest()
+    _root._retrievalRequests.add(RetrievalRequest()
       ..schemaUri = ref
       ..asyncRetrievalOperation = asyncRefSchemaOperation
       ..syncRetrievalOperation = syncRefSchemaOperation);
@@ -1206,12 +1204,12 @@ class JsonSchema {
   /// Validate [instance] against this schema, returning a boolean indicating whether
   /// validation succeeded or failed.
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
-      new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
+      Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
   /// Validate [instance] against this schema, returning a list of [ValidationError]
   /// objects with information about any validation errors that occurred.
   List<ValidationError> validateWithErrors(dynamic instance, {bool parseJson = false}) {
-    final validator = new Validator(this);
+    final validator = Validator(this);
     validator.validate(instance, reportMultipleErrors: true, parseJson: parseJson);
     return validator.errorObjects;
   }
@@ -1259,7 +1257,7 @@ class JsonSchema {
   JsonSchema _addSchemaToRefMap(String path, JsonSchema schema) => _refMap[path] = schema;
 
   // Create a [JsonSchema] from a sub-schema of the root.
-  _createOrRetrieveSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
+  _createOrRetrieveSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid = true}) {
     var throwError;
 
     if (schema is bool && schemaVersion != SchemaVersion.draft6)
@@ -1408,7 +1406,7 @@ class JsonSchema {
   _setOneOf(dynamic value) => _validateListOfSchema('oneOf', value, (schema) => _oneOf.add(schema));
 
   /// Validate, calculate and set the value of the 'pattern' JSON Schema prop.
-  _setPattern(dynamic value) => _pattern = new RegExp(TypeValidators.string('pattern', value));
+  _setPattern(dynamic value) => _pattern = RegExp(TypeValidators.string('pattern', value));
 
   /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
   _setPropertyNames(dynamic value) {
@@ -1465,7 +1463,7 @@ class JsonSchema {
       _createOrRetrieveSchema('$_path/items', value, (rhs) => _items = rhs);
     } else if (value is List) {
       int index = 0;
-      _itemsList = new List(value.length);
+      _itemsList = List(value.length);
       for (int i = 0; i < value.length; i++) {
         _createOrRetrieveSchema('$_path/items/${index++}', value[i], (rhs) => _itemsList[i] = rhs);
       }
@@ -1529,7 +1527,7 @@ class JsonSchema {
             if (v.length == 0) throw FormatExceptions.error('property dependencies must be non-empty array');
           }
 
-          final Set uniqueDeps = new Set();
+          final Set uniqueDeps = Set();
           v.forEach((propDep) {
             if (propDep is! String) throw FormatExceptions.string('propertyDependency', v);
 
@@ -1552,7 +1550,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'patternProperties' JSON Schema prop.
   _setPatternProperties(dynamic value) => (TypeValidators.object('patternProperties', value)).forEach((k, v) =>
-      _createOrRetrieveSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[new RegExp(k)] = rhs));
+      _createOrRetrieveSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[RegExp(k)] = rhs));
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
   _setRequired(dynamic value) =>
