@@ -74,9 +74,9 @@ class JsonSchemaValidationRegexes {
 class SchemaVersion implements Comparable<SchemaVersion> {
   const SchemaVersion._(this.value);
 
-  static const SchemaVersion draft4 = const SchemaVersion._(0);
+  static const SchemaVersion draft4 = SchemaVersion._(0);
 
-  static const SchemaVersion draft6 = const SchemaVersion._(1);
+  static const SchemaVersion draft6 = SchemaVersion._(1);
 
   static List<SchemaVersion> get values => const <SchemaVersion>[draft4, draft6];
 

@@ -112,7 +112,7 @@ Select log level from:
     result['log-level'] = argResults['log-level'];
 
     if (result['log-level'] != null) {
-      const choices = const {
+      const choices = {
         'all': Level.ALL,
         'config': Level.CONFIG,
         'fine': Level.FINE,

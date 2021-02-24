@@ -39,19 +39,19 @@
 class SchemaType implements Comparable<SchemaType> {
   const SchemaType._(this.value);
 
-  static const SchemaType array = const SchemaType._(0);
+  static const SchemaType array = SchemaType._(0);
 
-  static const SchemaType boolean = const SchemaType._(1);
+  static const SchemaType boolean = SchemaType._(1);
 
-  static const SchemaType integer = const SchemaType._(2);
+  static const SchemaType integer = SchemaType._(2);
 
-  static const SchemaType number = const SchemaType._(3);
+  static const SchemaType number = SchemaType._(3);
 
-  static const SchemaType nullValue = const SchemaType._(4);
+  static const SchemaType nullValue = SchemaType._(4);
 
-  static const SchemaType object = const SchemaType._(5);
+  static const SchemaType object = SchemaType._(5);
 
-  static const SchemaType string = const SchemaType._(6);
+  static const SchemaType string = SchemaType._(6);
 
   static List<SchemaType> get values => const <SchemaType>[array, boolean, integer, number, nullValue, object, string];
 
