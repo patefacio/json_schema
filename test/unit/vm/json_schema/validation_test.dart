@@ -36,6 +36,8 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+@TestOn('vm')
+
 library json_schema.test_validation;
 
 import 'dart:io';

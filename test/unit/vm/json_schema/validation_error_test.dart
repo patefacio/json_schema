@@ -1,6 +1,8 @@
 // This test suite verifies that validation errors report correct values for
 // instance & schema paths.
 
+@TestOn('vm')
+
 import 'package:json_schema/json_schema.dart';
 import 'package:test/test.dart';
 

@@ -9,15 +9,11 @@ cache:
     - $HOME/.pub-cache
 install: true
 script:
-  # Use normal "pub get" for Dart 2.
-  - |
-    if [[ $(dart dart_version.dart) = "2" ]]; then
-      pub get
-    fi
-  - pub run dependency_validator --ignore coverage
-  - pub run dart_dev dart2-only -- format --check
+  - pub get
+  - pub run dependency_validator --ignore coverage,test_html_builder
+  - pub run dart_dev format --check
   - pub run dart_dev analyze
-  - pub run dart_dev test -p vm
-  - pub run dart_dev test -p chrome --release
+  - pub run dart_dev test -P travis
+  - pub run dart_dev test --test-args="--platform chrome" --release -P travis
   # TODO: re-enable coverage when a Dart 2 solution is available.
   # - pub run dart_dev dart1-only -- coverage --no-html && bash <(curl -s https://codecov.io/bash) -f coverage/coverage.lcov
