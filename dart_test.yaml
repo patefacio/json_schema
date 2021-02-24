@@ -1,0 +1,13 @@
+platforms:
+  - vm
+  - chrome
+paths:
+  - test/unit
+
+concurrency: 4
+timeout: 10s
+reporter: expanded
+
+presets:
+  travis:
+    reporter: expanded

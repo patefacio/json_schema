@@ -141,9 +141,6 @@ linter:
     # Style: Sort unnamed constructor declarations first
     - sort_unnamed_constructors_first
 
-    # Style: Place the super() call last in a constructor initialization list.
-    - super_goes_last
-
     # Error: Test type arguments in operator ==(Object other).
     - test_types_in_equals
 
@@ -158,9 +155,6 @@ linter:
 
     # Style: Await for future expression statements inside async function bodies.
     # - unawaited_futures # TODO uncomment when you want to deal with these
-
-    # Style: Avoid using braces in interpolation when not needed.
-    - unnecessary_brace_in_string_interp
 
     # Style: Avoid wrapping fields in getters and setters just to be "safe".
     - unnecessary_getters_setters

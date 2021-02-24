@@ -1,3 +1,7 @@
+## 3.0.0
+
+* Removed support for Dart 1
+
 ## 2.2.0
 
 * Add note about root path in error string when instance path is empty

@@ -1,6 +1,5 @@
 language: dart
 dart:
-  - 1.24.3
   - stable
 sudo: required
 addons:
@@ -10,24 +9,11 @@ cache:
     - $HOME/.pub-cache
 install: true
 script:
-  # Use pub 2 for Dart 1.
-  - |
-    if [[ $(dart dart_version.dart) = "1" ]]; then
-      curl --connect-timeout 15 --retry 5 https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip > ${TRAVIS_HOME}/dartsdk2.zip
-      unzip ${TRAVIS_HOME}/dartsdk2.zip -d ${TRAVIS_HOME}/dart2 > /dev/null
-      rm ${TRAVIS_HOME}/dartsdk2.zip
-      _PUB_TEST_SDK_VERSION=1.24.3 timeout 5m ${TRAVIS_HOME}/dart2/dart-sdk/bin/pub get --no-precompile
-      pub get
-    fi
-  # Use normal "pub get" for Dart 2.
-  - |
-    if [[ $(dart dart_version.dart) = "2" ]]; then
-      pub get
-    fi
-  - pub run dependency_validator --ignore coverage
-  - pub run dart_dev dart2-only -- format --check
+  - pub get
+  - pub run dependency_validator --ignore coverage,test_html_builder
+  - pub run dart_dev format --check
   - pub run dart_dev analyze
-  - pub run dart_dev test -p vm
-  - pub run dart_dev test -p chrome --release
+  - pub run dart_dev test -P travis
+  - pub run dart_dev test --test-args="--platform chrome" --release -P travis
   # TODO: re-enable coverage when a Dart 2 solution is available.
   # - pub run dart_dev dart1-only -- coverage --no-html && bash <(curl -s https://codecov.io/bash) -f coverage/coverage.lcov
