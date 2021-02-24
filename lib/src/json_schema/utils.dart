@@ -119,7 +119,7 @@ class DefaultValidators {
 
   uriTemplateValidator(String uriTemplate) {
     try {
-      new UriTemplate(uriTemplate);
+      UriTemplate(uriTemplate);
       return true;
     } catch (e) {
       return false;

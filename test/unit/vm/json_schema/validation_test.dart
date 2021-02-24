@@ -51,7 +51,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
 
-final Logger _logger = new Logger('test_validation');
+final Logger _logger = Logger('test_validation');
 
 void main([List<String> args]) {
   configureJsonSchemaForVm();
@@ -76,13 +76,13 @@ void main([List<String> args]) {
   Logger.root.level = Level.OFF;
 
   // Draft 4 Tests
-  final Directory testSuiteFolderV4 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
-  final Directory optionalsV4 = new Directory(path.joinAll([testSuiteFolderV4.path, 'optional']));
+  final Directory testSuiteFolderV4 = Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
+  final Directory optionalsV4 = Directory(path.joinAll([testSuiteFolderV4.path, 'optional']));
   final allDraft4 = testSuiteFolderV4.listSync()..addAll(optionalsV4.listSync());
 
   // Draft 6 Tests
-  final Directory testSuiteFolderV6 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6');
-  final Directory optionalsV6 = new Directory(path.joinAll([testSuiteFolderV6.path, 'optional']));
+  final Directory testSuiteFolderV6 = Directory('./test/JSON-Schema-Test-Suite/tests/draft6');
+  final Directory optionalsV6 = Directory(path.joinAll([testSuiteFolderV6.path, 'optional']));
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
@@ -207,7 +207,7 @@ void main([List<String> args]) {
 
   final RefProviderAsync asyncRefProvider = (String ref) async {
     // Mock a delayed response.
-    await new Duration(milliseconds: 1);
+    await Duration(milliseconds: 1);
     return syncRefProvider(ref);
   };
 

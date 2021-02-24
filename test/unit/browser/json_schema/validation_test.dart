@@ -45,7 +45,7 @@ import 'package:json_schema/browser.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
-final Logger _logger = new Logger('test_validation');
+final Logger _logger = Logger('test_validation');
 
 void main([List<String> args]) {
   configureJsonSchemaForBrowser();

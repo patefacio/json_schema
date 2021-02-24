@@ -77,7 +77,7 @@ Map _parseArgs(List<String> args) {
   ArgResults argResults;
   final Map result = {};
 
-  _parser = new ArgParser();
+  _parser = ArgParser();
   try {
     /// Fill in expectations of the parser
     _parser.addFlag('help',
@@ -136,7 +136,7 @@ Select log level from:
   }
 }
 
-final _logger = new Logger('schemadot');
+final _logger = Logger('schemadot');
 
 main(List<String> args) {
   Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
@@ -145,7 +145,7 @@ main(List<String> args) {
   final Map options = argResults['options'];
 
   try {
-    if (options['in-uri'] == null) throw new ArgumentError('option: in-uri is required');
+    if (options['in-uri'] == null) throw ArgumentError('option: in-uri is required');
   } on ArgumentError catch (e) {
     print(e);
     _usage();
@@ -153,18 +153,18 @@ main(List<String> args) {
   }
 
   Logger.root.level = Level.OFF;
-  final Completer completer = new Completer();
+  final Completer completer = Completer();
   final Uri uri = Uri.parse(options['in-uri']);
   if (uri.scheme == 'http') {
-    new HttpClient()
+    HttpClient()
         .getUrl(uri)
         .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) => new Utf8Decoder().bind(response).join())
+        .then((HttpClientResponse response) => Utf8Decoder().bind(response).join())
         .then((text) {
       completer.complete(text);
     });
   } else {
-    final File target = new File(uri.toString());
+    final File target = File(uri.toString());
     if (target.existsSync()) {
       completer.complete(target.readAsStringSync());
     }
@@ -175,7 +175,7 @@ main(List<String> args) {
     schema.then((schema) {
       final String dot = createDot(schema);
       if (options['out-file'] != null) {
-        new File(options['out-file']).writeAsStringSync(dot);
+        File(options['out-file']).writeAsStringSync(dot);
       } else {
         print(dot);
       }

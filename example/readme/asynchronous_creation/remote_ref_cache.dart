@@ -79,7 +79,7 @@ main() async {
       // Silly example that adds a 1 second delay.
       // In practice, you could make any service call here,
       // parse the results into a schema, and return.
-      await new Future.delayed(new Duration(seconds: 1));
+      await Future.delayed(Duration(seconds: 1));
       return references[ref];
     }
 

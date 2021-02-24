@@ -50,7 +50,7 @@ import 'package:test/test.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
 
-final Logger _logger = new Logger('test_invalid_schemas');
+final Logger _logger = Logger('test_invalid_schemas');
 
 void main([List<String> args]) {
   configureJsonSchemaForVm();
@@ -60,7 +60,7 @@ void main([List<String> args]) {
     Logger.root.level = Level.OFF;
   }
 
-  final Directory testSuiteFolder = new Directory('./test/invalid_schemas/draft4');
+  final Directory testSuiteFolder = Directory('./test/invalid_schemas/draft4');
 
   testSuiteFolder.listSync().forEach((testEntry) {
     final String shortName = path.basename(testEntry.path);
