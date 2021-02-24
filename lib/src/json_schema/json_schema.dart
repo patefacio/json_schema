@@ -51,11 +51,11 @@ import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/validator.dart';
 import 'package:json_schema/src/json_schema/typedefs.dart';
 
-typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
-typedef SchemaAssigner(JsonSchema s);
-typedef SchemaAdder(JsonSchema s);
-typedef Future<JsonSchema> AsyncRetrievalOperation();
-typedef JsonSchema SyncRetrievalOperation();
+typedef SchemaPropertySetter = dynamic Function(JsonSchema s, dynamic value);
+typedef SchemaAssigner = Function(JsonSchema s);
+typedef SchemaAdder = Function(JsonSchema s);
+typedef AsyncRetrievalOperation = Future<JsonSchema> Function();
+typedef SyncRetrievalOperation = JsonSchema Function();
 
 class RetrievalRequest {
   Uri schemaUri;
