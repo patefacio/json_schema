@@ -82,7 +82,7 @@ main() {
   };
 
   JsonSchema.createSchemaAsync(movieSchema).then((schema) {
-    final validator = new Validator(schema);
+    final validator = Validator(schema);
     final bool validates = validator.validate(movies);
     if (!validates) {
       print('Errors: ${validator.errors}');

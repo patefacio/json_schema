@@ -45,15 +45,15 @@ import 'package:json_schema/json_schema.dart';
 ///
 @Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 class SchemaNode {
+  SchemaNode(this.schema, [this.links]) {
+    if (links == null) links = [];
+  }
+
   /// Referenced schema this node portrays
   JsonSchema schema;
 
   /// List of links (resulting in graph edge) from this node to another
   List<String> links;
-
-  SchemaNode(this.schema, [this.links]) {
-    if (links == null) links = [];
-  }
 
   static bool schemaShown(JsonSchema schema) =>
       schema.properties.length > 0 ||
@@ -70,7 +70,7 @@ class SchemaNode {
   String get nodes {
     final List lines = schema.refMap.values
         .where((schema) => schemaShown(schema))
-        .map((schema) => new SchemaNode(schema, links).node)
+        .map((schema) => SchemaNode(schema, links).node)
         .toList();
     lines.addAll(links.map((link) => '$link;'));
     return lines.join('\n');
@@ -261,7 +261,7 @@ class SchemaNode {
     final List<String> props = [];
     if (schema.properties.length > 0) {
       props.add(wrap('Properties'));
-      final sortedProps = new List.from(schema.properties.keys)..sort();
+      final sortedProps = List.from(schema.properties.keys)..sort();
       sortedProps.forEach((prop) {
         final propertySchema = schema.properties[prop];
         final String requiredPrefix = schema.propertyRequired(prop) ? '! ' : '? ';
@@ -283,7 +283,7 @@ class SchemaNode {
     if (schema.definitions.length > 0) {
       definitions
           .add('<tr><td bgcolor="wheat" align="center" colspan="2"><font color="black">Definitions</font></td></tr>');
-      final sortedDefinitions = new List.from(schema.definitions.keys)..sort();
+      final sortedDefinitions = List.from(schema.definitions.keys)..sort();
       sortedDefinitions.forEach((key) {
         definitions.add(wrapRowDistinct(key, '', '${schema.path}@$key'));
       });
@@ -291,7 +291,7 @@ class SchemaNode {
     return definitions;
   }
 
-  String wrap(String s, {String port: '', String color: 'wheat'}) => s == null
+  String wrap(String s, {String port = '', String color = 'wheat'}) => s == null
       ? ''
       : '<tr><td bgcolor="$color" align="center" colspan="2" port="$port"><font color="black">$s</font></td></tr>';
 
@@ -331,7 +331,7 @@ digraph G {
     fontsize = 8
   ]
 
-${new SchemaNode(schema).nodes}
+${SchemaNode(schema).nodes}
 
 
 }

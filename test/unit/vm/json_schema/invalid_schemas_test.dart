@@ -40,9 +40,9 @@
 
 library json_schema.test_invalid_schemas;
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart2_constant/convert.dart' as convert;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -50,7 +50,7 @@ import 'package:test/test.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
 
-final Logger _logger = new Logger('test_invalid_schemas');
+final Logger _logger = Logger('test_invalid_schemas');
 
 void main([List<String> args]) {
   configureJsonSchemaForVm();
@@ -60,13 +60,13 @@ void main([List<String> args]) {
     Logger.root.level = Level.OFF;
   }
 
-  final Directory testSuiteFolder = new Directory('./test/invalid_schemas/draft4');
+  final Directory testSuiteFolder = Directory('./test/invalid_schemas/draft4');
 
   testSuiteFolder.listSync().forEach((testEntry) {
     final String shortName = path.basename(testEntry.path);
     group('Invalid schema (draft4): ${shortName}', () {
       if (testEntry is File) {
-        final List tests = convert.json.decode((testEntry).readAsStringSync());
+        final List tests = json.decode((testEntry).readAsStringSync());
         tests.forEach((testObject) {
           final schemaData = testObject['schema'];
           final description = testObject['description'];

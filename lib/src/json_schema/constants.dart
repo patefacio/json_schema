@@ -37,16 +37,16 @@
 //     THE SOFTWARE.
 
 class JsonSchemaValidationRegexes {
-  static RegExp email = new RegExp(r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
+  static RegExp email = RegExp(r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
       r'@'
       r'[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$');
 
-  static RegExp ipv4 = new RegExp(r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
+  static RegExp ipv4 = RegExp(r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
       r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
       r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
       r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$');
 
-  static RegExp ipv6 = new RegExp(r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
+  static RegExp ipv6 = RegExp(r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
       r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}$)|'
       r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}$)|'
       r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}$)|'
@@ -64,19 +64,19 @@ class JsonSchemaValidationRegexes {
       r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
       r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)');
 
-  static RegExp hostname = new RegExp(r'^(?=.{1,255}$)'
+  static RegExp hostname = RegExp(r'^(?=.{1,255}$)'
       r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
       r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$');
 
-  static RegExp jsonPointer = new RegExp(r'^(?:\/(?:[^~/]|~0|~1)*)*$');
+  static RegExp jsonPointer = RegExp(r'^(?:\/(?:[^~/]|~0|~1)*)*$');
 }
 
 class SchemaVersion implements Comparable<SchemaVersion> {
   const SchemaVersion._(this.value);
 
-  static const SchemaVersion draft4 = const SchemaVersion._(0);
+  static const SchemaVersion draft4 = SchemaVersion._(0);
 
-  static const SchemaVersion draft6 = const SchemaVersion._(1);
+  static const SchemaVersion draft6 = SchemaVersion._(1);
 
   static List<SchemaVersion> get values => const <SchemaVersion>[draft4, draft6];
 
