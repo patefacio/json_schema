@@ -427,18 +427,6 @@ void main() {
       expect(errors[0].message, contains('json-pointer'));
     });
 
-    test('Format non-string', () {
-      final schema = createObjectSchema({'format': 'uri'});
-
-      final errors = schema.validateWithErrors({'someKey': 3});
-
-      for (var err in errors) print(err);
-      expect(errors.length, 1);
-      expect(errors[0].instancePath, '/someKey');
-      expect(errors[0].schemaPath, '/properties/someKey');
-      expect(errors[0].message, contains('type'));
-    });
-
     test('Unsupported format', () {
       final schema = createObjectSchema({'format': 'fake-format'});
 
