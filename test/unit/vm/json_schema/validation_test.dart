@@ -163,7 +163,7 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath('#/integer');
+        ''')).resolvePath(Uri.parse('#/integer'));
         break;
       case 'http://localhost:1234/subSchemas.json#/refToInteger':
         return JsonSchema.createSchema(json.decode(r'''
@@ -175,7 +175,7 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath('#/refToInteger');
+        ''')).resolvePath(Uri.parse('#/refToInteger'));
         break;
       case 'http://localhost:1234/folder/folderInteger.json':
         return JsonSchema.createSchema(json.decode(r'''
@@ -201,7 +201,7 @@ void main([List<String> args]) {
             },
             "type": "string"
           }
-        ''')).resolvePath('#/definitions/orNull');
+        ''')).resolvePath(Uri.parse('#/definitions/orNull'));
         break;
       default:
         return null;

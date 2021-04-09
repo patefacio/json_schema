@@ -43,4 +43,5 @@ import 'package:json_schema/src/json_schema/json_schema.dart';
 
 typedef CreateJsonSchemaFromUrl = Future<JsonSchema> Function(String schemaUrl, {SchemaVersion schemaVersion});
 typedef RefProvider = JsonSchema Function(String ref);
+typedef RefJsonProvider = Map<String, dynamic> Function(String ref);
 typedef RefProviderAsync = Future<JsonSchema> Function(String ref);

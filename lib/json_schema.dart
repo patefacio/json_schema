@@ -40,4 +40,4 @@ export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
 export 'package:json_schema/src/json_schema/constants.dart' show SchemaVersion;
 export 'package:json_schema/src/json_schema/schema_type.dart' show SchemaType;
 export 'package:json_schema/src/json_schema/validator.dart' show Validator, ValidationError;
-export 'package:json_schema/src/json_schema/typedefs.dart' show RefProvider, RefProviderAsync;
+export 'package:json_schema/src/json_schema/typedefs.dart' show RefProvider, RefProviderAsync, RefJsonProvider;
