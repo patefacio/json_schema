@@ -574,6 +574,61 @@ class JsonSchema {
         'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
+  // TODO: Merge with async fetch method.
+  JsonSchema _fetchRefSchemaFromProvider(Uri ref) {
+    final Uri baseUri = ref.removeFragment();
+    print('_fetchRefSchemaFromProvider called with ref "$ref"');
+
+    // Always attempt to fetch using the full ref first.
+    final JsonSchema fullRefMatch = _refProvider(ref.toString());
+    if (fullRefMatch != null) {
+      print('Matched full ref from refProvider');
+      return fullRefMatch;
+    }
+
+    // Fallback to base uri match.
+    JsonSchema baseUriMatch = _refProvider(baseUri.toString());
+
+    if (baseUriMatch == null) {
+      // Lastly attempt to match base uri with empty fragment.
+      baseUriMatch = _refProvider('${baseUri}#');
+    }
+
+    if (baseUriMatch != null && ref.hasFragment && ref.fragment.isNotEmpty) {
+      // Resolve fragment if provided.
+      return baseUriMatch.resolvePath(Uri.parse('#${ref.fragment}'));
+    }
+
+    // Return base schema or null if no fragment present.
+    return baseUriMatch;
+  }
+
+  Future<JsonSchema> _fetchRefSchemaFromAsyncProvider(Uri ref) async {
+    final Uri baseUri = ref.removeFragment();
+
+    // Always attempt to fetch using the full ref first.
+    final JsonSchema fullRefMatch = await _refProviderAsync(ref.toString());
+    if (fullRefMatch != null) {
+      return fullRefMatch;
+    }
+
+    // Fallback to base uri match.
+    JsonSchema baseUriMatch = await _refProviderAsync(baseUri.toString());
+
+    if (baseUriMatch == null) {
+      // Lastly attempt to match base uri with empty fragment.
+      baseUriMatch = await _refProviderAsync('${baseUri}#');
+    }
+
+    if (baseUriMatch != null && ref.hasFragment && ref.fragment.isNotEmpty) {
+      // Resolve fragment if provided.
+      return baseUriMatch.resolvePath(Uri.parse('#${ref.fragment}'));
+    }
+
+    // Return base schema or null if no fragment present.
+    return baseUriMatch;
+  }
+
   /// Create a new schema using refJsonProvider with a shared refMap.
   JsonSchema _fetchAndCreateRefSchema(Uri ref) {
     final Uri baseUri = ref.removeFragment();
@@ -1294,10 +1349,10 @@ class JsonSchema {
 
     final AsyncRetrievalOperation asyncRefSchemaOperation = _refProviderAsync == null
         ? () => createSchemaFromUrl(ref.toString()).then(addSchemaFunction)
-        : () => _refProviderAsync(ref.toString()).then(addSchemaFunction);
+        : () => _fetchRefSchemaFromAsyncProvider(ref).then(addSchemaFunction);
 
     final SyncRetrievalOperation syncRefSchemaOperation = _refProvider != null
-        ? () => addSchemaFunction(_refProvider(ref.toString()))
+        ? () => addSchemaFunction(_fetchRefSchemaFromProvider(ref))
         : () => addSchemaFunction(_fetchAndCreateRefSchema(ref));
 
     /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.

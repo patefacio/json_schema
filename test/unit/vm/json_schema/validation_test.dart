@@ -153,7 +153,7 @@ void main([List<String> args]) {
           }
         '''));
         break;
-      case 'http://localhost:1234/subSchemas.json#/integer':
+      case 'http://localhost:1234/subSchemas.json':
         return JsonSchema.createSchema(json.decode(r'''
           {
             "integer": {
@@ -163,9 +163,9 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath(Uri.parse('#/integer'));
+        '''));
         break;
-      case 'http://localhost:1234/subSchemas.json#/refToInteger':
+      case 'http://localhost:1234/subSchemas.json':
         return JsonSchema.createSchema(json.decode(r'''
           {
             "integer": {
@@ -175,7 +175,7 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath(Uri.parse('#/refToInteger'));
+        '''));
         break;
       case 'http://localhost:1234/folder/folderInteger.json':
         return JsonSchema.createSchema(json.decode(r'''
@@ -184,7 +184,7 @@ void main([List<String> args]) {
           }
         '''));
         break;
-      case 'http://localhost:1234/name.json#/definitions/orNull':
+      case 'http://localhost:1234/name.json':
         return JsonSchema.createSchema(json.decode(r'''
           {
             "definitions": {
@@ -201,8 +201,26 @@ void main([List<String> args]) {
             },
             "type": "string"
           }
-        ''')).resolvePath(Uri.parse('#/definitions/orNull'));
+        '''));
         break;
+      case 'http://localhost:1234/baseUriChangeFolderInSubschema/folderInteger.json':
+        return JsonSchema.createSchema('''
+          {
+              "type": "integer"
+          }
+        ''');
+      case 'http://localhost:1234/baseUriChangeFolder/folderInteger.json':
+        return JsonSchema.createSchema('''
+          {
+              "type": "integer"
+          }
+        ''');
+      case 'http://localhost:1234/baseUriChange/folderInteger.json':
+        return JsonSchema.createSchema('''
+          {
+              "type": "integer"
+          }
+        ''');
       default:
         return null;
         break;
@@ -293,12 +311,6 @@ void main([List<String> args]) {
     'validation of URI templates : ignores arrays',
     'validation of URI templates : ignores booleans',
     'validation of URI templates : ignores null',
-    'base URI change : base URI change ref valid',
-    'base URI change : base URI change ref invalid',
-    'base URI change - change folder : number is valid',
-    'base URI change - change folder : string is invalid',
-    'base URI change - change folder in subschema : number is valid',
-    'base URI change - change folder in subschema : string is invalid',
   ];
 
   // Run all tests asynchronously with no ref provider.
