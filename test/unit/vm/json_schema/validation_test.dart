@@ -87,7 +87,7 @@ void main([List<String> args]) {
 
   final runAllTestsForDraftX =
       (SchemaVersion schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
-          {bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
+          {bool isSync = false, RefProvider refProvider}) {
     String shortSchemaVersion = schemaVersion.toString();
     if (schemaVersion == SchemaVersion.draft4) {
       shortSchemaVersion = 'draft4';
@@ -129,7 +129,7 @@ void main([List<String> args]) {
                   expect(validationResult, expectedResult);
                 } else {
                   final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProviderAsync)
+                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProvider)
                       .then((schema) {
                     validationResult = schema.validate(instance);
                     checkResult();
@@ -144,17 +144,17 @@ void main([List<String> args]) {
   };
 
   // Mock Ref Provider for refRemote tests. Emulates what createSchemaFromUrl would return.
-  final RefProvider syncRefProvider = (String ref) {
+  final RefProvider syncRefJsonProvider = RefProvider.syncJson((String ref) {
     switch (ref) {
       case 'http://localhost:1234/integer.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "type": "integer"
           }
-        '''));
+        ''');
         break;
       case 'http://localhost:1234/subSchemas.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "integer": {
               "type": "integer"
@@ -163,10 +163,10 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        '''));
+        ''');
         break;
       case 'http://localhost:1234/subSchemas.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "integer": {
               "type": "integer"
@@ -175,17 +175,17 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        '''));
+        ''');
         break;
       case 'http://localhost:1234/folder/folderInteger.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "type": "integer"
           }
-        '''));
+        ''');
         break;
       case 'http://localhost:1234/name.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "definitions": {
               "orNull": {
@@ -201,22 +201,22 @@ void main([List<String> args]) {
             },
             "type": "string"
           }
-        '''));
+        ''');
         break;
       case 'http://localhost:1234/baseUriChangeFolderInSubschema/folderInteger.json':
-        return JsonSchema.createSchema('''
+        return json.decode('''
           {
               "type": "integer"
           }
         ''');
       case 'http://localhost:1234/baseUriChangeFolder/folderInteger.json':
-        return JsonSchema.createSchema('''
+        return json.decode('''
           {
               "type": "integer"
           }
         ''');
       case 'http://localhost:1234/baseUriChange/folderInteger.json':
-        return JsonSchema.createSchema('''
+        return json.decode('''
           {
               "type": "integer"
           }
@@ -225,13 +225,28 @@ void main([List<String> args]) {
         return null;
         break;
     }
-  };
+  });
 
-  final RefProviderAsync asyncRefProvider = (String ref) async {
+  final RefProvider syncRefProvider = RefProvider.syncSchema((String ref) {
+    final schemaDef = syncRefJsonProvider.provide(ref);
+    if (schemaDef != null) {
+      return JsonSchema.createSchema(schemaDef);
+    }
+
+    return null;
+  });
+
+  final RefProvider asyncRefJsonProvider = RefProvider.asyncJson((String ref) async {
     // Mock a delayed response.
     await Duration(milliseconds: 1);
-    return syncRefProvider(ref);
-  };
+    return syncRefJsonProvider.provide(ref);
+  });
+
+  final RefProvider asyncRefProvider = RefProvider.asyncSchema((String ref) async {
+    // Mock a delayed response.
+    await Duration(milliseconds: 1);
+    return syncRefProvider.provide(ref);
+  });
 
   final List<String> commonSkippedFiles = const [];
 
@@ -318,16 +333,72 @@ void main([List<String> args]) {
   runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
 
   // Run all tests synchronously with a sync ref provider.
-  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
-      isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
-      isSync: true, refProvider: syncRefProvider);
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefProvider,
+  );
+
+  // Run all tests synchronously with a sync json provider.
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefJsonProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefJsonProvider,
+  );
 
   // Run all tests asynchronously with an async ref provider.
-  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
-      refProviderAsync: asyncRefProvider);
-  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
-      refProviderAsync: asyncRefProvider);
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefProvider,
+  );
+
+  // Run all tests asynchronously with an async json provider.
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefJsonProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefJsonProvider,
+  );
 
   group('Schema self validation', () {
     for (final version in SchemaVersion.values.map((value) => value.toString())) {

@@ -56,7 +56,7 @@ main() {
     }
   };
 
-  final RefProvider refProvider = (String ref) {
+  final RefProvider refProvider = RefProvider.syncSchema((String ref) {
     final Map references = {
       'https://example.com/geographical-location.schema.json': JsonSchema.createSchema(referencedSchema),
     };
@@ -66,7 +66,7 @@ main() {
     }
 
     return null;
-  };
+  });
 
   final schema = JsonSchema.createSchema({
     'type': 'array',

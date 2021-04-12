@@ -44,18 +44,12 @@ import 'package:collection/collection.dart';
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
 import 'package:json_schema/src/json_schema/global_platform_functions.dart';
+import 'package:json_schema/src/json_schema/ref_provider.dart';
 import 'package:json_schema/src/json_schema/schema_type.dart';
 import 'package:json_schema/src/json_schema/type_validators.dart';
+import 'package:json_schema/src/json_schema/typedefs.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/validator.dart';
-import 'package:json_schema/src/json_schema/typedefs.dart';
-
-typedef SchemaPropertySetter = dynamic Function(JsonSchema s, dynamic value);
-typedef SchemaPropertyGetter = dynamic Function(JsonSchema s);
-typedef SchemaAssigner = Function(JsonSchema s);
-typedef SchemaAdder = Function(JsonSchema s);
-typedef AsyncRetrievalOperation = Future<JsonSchema> Function();
-typedef SyncRetrievalOperation = JsonSchema Function();
 
 class RetrievalRequest {
   Uri schemaUri;
@@ -78,38 +72,24 @@ class JsonSchema {
   }
 
   JsonSchema._fromRootMap(this._schemaMap, SchemaVersion schemaVersion,
-      {Uri fetchedFromUri,
-      bool isSync = false,
-      Map<String, JsonSchema> refMap,
-      RefProvider refProvider,
-      RefProviderAsync refProviderAsync,
-      RefJsonProvider refJsonProvider}) {
+      {Uri fetchedFromUri, bool isSync = false, Map<String, JsonSchema> refMap, RefProvider refProvider}) {
     _initialize(
       schemaVersion: schemaVersion,
       fetchedFromUri: fetchedFromUri,
       isSync: isSync,
       refMap: refMap,
       refProvider: refProvider,
-      refProviderAsync: refProviderAsync,
-      refJsonProvider: refJsonProvider,
     );
   }
 
   JsonSchema._fromRootBool(this._schemaBool, SchemaVersion schemaVersion,
-      {Uri fetchedFromUri,
-      bool isSync = false,
-      Map<String, JsonSchema> refMap,
-      RefProvider refProvider,
-      RefProviderAsync refProviderAsync,
-      RefJsonProvider refJsonProvider}) {
+      {Uri fetchedFromUri, bool isSync = false, Map<String, JsonSchema> refMap, RefProvider refProvider}) {
     _initialize(
       schemaVersion: schemaVersion,
       fetchedFromUri: fetchedFromUri,
       isSync: isSync,
       refMap: refMap,
       refProvider: refProvider,
-      refProviderAsync: refProviderAsync,
-      refJsonProvider: refJsonProvider,
     );
   }
 
@@ -124,7 +104,7 @@ class JsonSchema {
   /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec),
   /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
   static Future<JsonSchema> createSchemaAsync(dynamic schema,
-      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
     // Default to assuming the schema is already a decoded, primitive dart object.
     dynamic data = schema;
 
@@ -142,14 +122,13 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
+      return JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProvider: refProvider)
           ._thisCompleter
           .future;
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == SchemaVersion.draft6) {
-      return JsonSchema._fromRootBool(data, schemaVersion,
-              fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
+      return JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProvider: refProvider)
           ._thisCompleter
           .future;
     }
@@ -169,7 +148,6 @@ class JsonSchema {
     SchemaVersion schemaVersion,
     Uri fetchedFromUri,
     RefProvider refProvider,
-    RefJsonProvider refJsonProvider,
   }) {
     // Default to assuming the schema is already a decoded, primitive dart object.
     dynamic data = schema;
@@ -194,7 +172,6 @@ class JsonSchema {
         fetchedFromUri: fetchedFromUri,
         isSync: true,
         refProvider: refProvider,
-        refJsonProvider: refJsonProvider,
       );
 
       // Boolean schemas are only supported in draft 6 and later.
@@ -205,11 +182,10 @@ class JsonSchema {
         fetchedFromUri: fetchedFromUri,
         isSync: true,
         refProvider: refProvider,
-        refJsonProvider: refJsonProvider,
       );
     }
     throw ArgumentError(
-        'Data provided to createSchema is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
+        'Data provided to createSchema is not valid: Data must be a Map or a String that parses to a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from a URL.
@@ -230,8 +206,6 @@ class JsonSchema {
     bool isSync = false,
     Map<String, JsonSchema> refMap,
     RefProvider refProvider,
-    RefProviderAsync refProviderAsync,
-    RefJsonProvider refJsonProvider,
   }) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
@@ -241,8 +215,6 @@ class JsonSchema {
       _isSync = isSync;
       _refMap = refMap ?? {};
       _refProvider = refProvider;
-      _refJsonProvider = refJsonProvider;
-      _refProviderAsync = refProviderAsync;
       _schemaVersion = version;
       _fetchedFromUri = fetchedFromUri;
       try {
@@ -258,8 +230,6 @@ class JsonSchema {
     } else {
       _isSync = _root._isSync;
       _refProvider = _root._refProvider;
-      _refJsonProvider = _root._refJsonProvider;
-      _refProviderAsync = _root._refProviderAsync;
       _schemaVersion = _root.schemaVersion;
       _refMap = _root._refMap;
       _thisCompleter = _root._thisCompleter;
@@ -403,7 +373,7 @@ class JsonSchema {
     if (_root == this) {
       // If a ref provider is specified, use it and remove the corresponding retrieval request if
       // the provider returns a result.
-      if (_refProvider != null || _refJsonProvider != null) {
+      if (_refProvider != null) {
         while (_retrievalRequests.isNotEmpty) {
           final r = _retrievalRequests.removeAt(0);
           if (r.syncRetrievalOperation != null) {
@@ -574,109 +544,81 @@ class JsonSchema {
         'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
-  // TODO: Merge with async fetch method.
-  JsonSchema _fetchRefSchemaFromProvider(Uri ref) {
-    final Uri baseUri = ref.removeFragment();
-    print('_fetchRefSchemaFromProvider called with ref "$ref"');
-
-    // Always attempt to fetch using the full ref first.
-    final JsonSchema fullRefMatch = _refProvider(ref.toString());
-    if (fullRefMatch != null) {
-      print('Matched full ref from refProvider');
-      return fullRefMatch;
-    }
-
-    // Fallback to base uri match.
-    JsonSchema baseUriMatch = _refProvider(baseUri.toString());
-
-    if (baseUriMatch == null) {
-      // Lastly attempt to match base uri with empty fragment.
-      baseUriMatch = _refProvider('${baseUri}#');
-    }
-
-    if (baseUriMatch != null && ref.hasFragment && ref.fragment.isNotEmpty) {
-      // Resolve fragment if provided.
-      return baseUriMatch.resolvePath(Uri.parse('#${ref.fragment}'));
-    }
-
-    // Return base schema or null if no fragment present.
-    return baseUriMatch;
-  }
-
-  Future<JsonSchema> _fetchRefSchemaFromAsyncProvider(Uri ref) async {
-    final Uri baseUri = ref.removeFragment();
-
-    // Always attempt to fetch using the full ref first.
-    final JsonSchema fullRefMatch = await _refProviderAsync(ref.toString());
-    if (fullRefMatch != null) {
-      return fullRefMatch;
-    }
-
-    // Fallback to base uri match.
-    JsonSchema baseUriMatch = await _refProviderAsync(baseUri.toString());
-
-    if (baseUriMatch == null) {
-      // Lastly attempt to match base uri with empty fragment.
-      baseUriMatch = await _refProviderAsync('${baseUri}#');
-    }
-
-    if (baseUriMatch != null && ref.hasFragment && ref.fragment.isNotEmpty) {
-      // Resolve fragment if provided.
-      return baseUriMatch.resolvePath(Uri.parse('#${ref.fragment}'));
-    }
-
-    // Return base schema or null if no fragment present.
-    return baseUriMatch;
-  }
-
-  /// Create a new schema using refJsonProvider with a shared refMap.
-  JsonSchema _fetchAndCreateRefSchema(Uri ref) {
-    final Uri baseUri = ref.removeFragment();
+  JsonSchema _fetchRefSchemaFromSyncProvider(Uri ref) {
+    // Always check refMap first.
     if (_refMap.containsKey(ref.toString())) {
       return _refMap[ref.toString()];
     }
 
-    final dynamic schemaDefinition = _refJsonProvider(baseUri.toString());
+    final Uri baseUri = ref.removeFragment();
 
-    if (schemaDefinition == null) {
-      throw ArgumentError('Unable to fetch schema definition for $baseUri');
+    // Fallback order for ref provider:
+    // 1. Full URI (example: localhost:1234/integer.json#/definitions/integer)
+    // 2. Base URI (example: localhost:1234/integer.json)
+    // 3. Base URI with empty fragment (example: localhost:1234/integer.json#)
+    final dynamic schemaDefinition = _refProvider.provide(ref.toString()) ??
+        _refProvider.provide(baseUri.toString()) ??
+        _refProvider.provide('${baseUri}#');
+
+    return _createAndResolveProvidedSchema(ref, schemaDefinition);
+  }
+
+  Future<JsonSchema> _fetchRefSchemaFromAsyncProvider(Uri ref) async {
+    // Always check refMap first.
+    if (_refMap.containsKey(ref.toString())) {
+      return _refMap[ref.toString()];
     }
 
-    JsonSchema createdSchema;
-    if (schemaDefinition is Map) {
-      // createdSchema = JsonSchema._fromMap(_root, schemaDefinition, '#');
-      createdSchema = JsonSchema._fromRootMap(
+    final Uri baseUri = ref.removeFragment();
+
+    // Fallback order for ref provider:
+    // 1. Full URI (example: localhost:1234/integer.json#/definitions/integer)
+    // 2. Base URI (example: localhost:1234/integer.json)
+    // 3. Base URI with empty fragment (example: localhost:1234/integer.json#)
+    final dynamic schemaDefinition = await _refProvider.provide(ref.toString()) ??
+        await _refProvider.provide(baseUri.toString()) ??
+        await _refProvider.provide('${baseUri}#');
+
+    return _createAndResolveProvidedSchema(ref, schemaDefinition);
+  }
+
+  JsonSchema _createAndResolveProvidedSchema(Uri ref, dynamic schemaDefinition) {
+    final Uri baseUri = ref.removeFragment();
+
+    JsonSchema baseSchema;
+    if (schemaDefinition is JsonSchema) {
+      // Provider gave validated schema.
+      baseSchema = schemaDefinition;
+    } else if (schemaDefinition is Map) {
+      // Provider gave a schema object.
+      baseSchema = JsonSchema._fromRootMap(
         schemaDefinition,
         schemaVersion,
         isSync: _isSync,
         refMap: _refMap,
-        refJsonProvider: _refJsonProvider,
+        refProvider: _refProvider,
         fetchedFromUri: baseUri,
       );
-      _addSchemaToRefMap(createdSchema._uri.toString(), createdSchema);
-
-      // Boolean schemas are only supported in draft 6 and later.
+      _addSchemaToRefMap(baseSchema._uri.toString(), baseSchema);
     } else if (schemaDefinition is bool && schemaVersion == SchemaVersion.draft6) {
-      createdSchema = JsonSchema._fromRootBool(
+      baseSchema = JsonSchema._fromRootBool(
         schemaDefinition,
         schemaVersion,
         isSync: _isSync,
         refMap: _refMap,
-        refJsonProvider: _refJsonProvider,
+        refProvider: _refProvider,
         fetchedFromUri: baseUri,
       );
-      _addSchemaToRefMap(createdSchema._uri.toString(), createdSchema);
-    } else {
-      throw ArgumentError(
-        'Data provided to _fetchAndCreateRefSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}',
-      );
+      _addSchemaToRefMap(baseSchema._uri.toString(), baseSchema);
     }
 
-    if (ref.hasFragment) {
-      return createdSchema.resolvePath(Uri.parse('#${ref.fragment}'));
-    } else {
-      return createdSchema;
+    if (baseSchema != null && ref.hasFragment && ref.fragment.isNotEmpty) {
+      // Resolve fragment if provided.
+      return baseSchema.resolvePath(Uri.parse('#${ref.fragment}'));
     }
+
+    // Return base schema or null if no fragment present.
+    return baseSchema;
   }
 
   // --------------------------------------------------------------------------
@@ -871,35 +813,13 @@ class JsonSchema {
 
   bool _isSync = false;
 
-  /// Synchronous ref provider used to resolve remote references in a given [JsonSchema].
+  /// Ref provider object used to resolve remote references in a given [JsonSchema].
   ///
-  /// Note: only one ref provider should be passed in, sync or async.
-  ///
-  /// If [isSync] is true and a synchronous ref provided is specified: the synchronous provider will be used.
-  /// If [isSync] is true and no ref provider is specified: remote refs in a schema will cause an error to be thrown.
-  /// If [isSync] is false and an async ref provider is specified : the async ref provider will be used.
-  /// If [isSync] is false and no ref provider is specified: the default HTTP(S) ref provider will be used.
+  /// If [isSync] is true, the provider will be used to fetch remote refs.
+  /// If [isSync] is false, the provider will be used if specified, otherwise the default HTTP(S) ref provider will be used.
+  /// If provider type is [RefProviderType.schema], fully resolved + validated schemas are expected from the provider.
+  /// If provider type is [RefProviderType.json], the provider expects valid JSON objects from the provider.
   RefProvider _refProvider;
-
-  /// Synchronous ref provider used to resolve remote references in a given [JsonSchema] via Json.
-  ///
-  /// Note: only one ref provider should be passed in, sync, async, or json.
-  ///
-  /// If [isSync] is true and a synchronous ref provided is specified: the synchronous provider will be used.
-  /// If [isSync] is true and no ref provider is specified: remote refs in a schema will cause an error to be thrown.
-  /// If [isSync] is false and an async ref provider is specified : the async ref provider will be used.
-  /// If [isSync] is false and no ref provider is specified: the default HTTP(S) ref provider will be used.
-  RefJsonProvider _refJsonProvider;
-
-  /// Asynchronous ref provider used to resolve remote references in a given [JsonSchema].
-  ///
-  /// Note: only one ref provider should be passed in, sync or async.
-  ///
-  /// If [isSync] is true and a synchronous ref provided is specified: the synchronous provider will be used.
-  /// If [isSync] is true and no ref provider is specified: remote refs in a schema will cause an error to be thrown.
-  /// If [isSync] is false and an async ref provider is specified : the async ref provider will be used.
-  /// If [isSync] is false and no ref provider is specified: the default HTTP(S) ref provider will be used.
-  RefProviderAsync _refProviderAsync;
 
   static Map<String, SchemaPropertyGetter> _baseAccessGetterMap = {
     'definitions': (JsonSchema s) => s.definitions,
@@ -1331,7 +1251,7 @@ class JsonSchema {
   // Convenience Methods
   // --------------------------------------------------------------------------
 
-  void _addRefRetrievals(Uri ref, String path) {
+  void _addRefRetrievals(Uri ref) {
     final addSchemaFunction = (JsonSchema schema) {
       if (schema != null) {
         // Set referenced schema's path should be equivalent to the $ref value.
@@ -1342,18 +1262,22 @@ class JsonSchema {
         final String rootRef = '${ref.removeFragment()}#';
         _addSchemaToRefMap(rootRef, schema._root);
       } else {
-        throw FormatExceptions.error(
-            'Couldn\'t resolve ref: ${ref} using the ${_refProviderAsync != null || _refProvider != null ? 'provided' : 'default HTTP(S)'} ref provider.');
+        String exceptionMessage = 'Couldn\'t resolve ref: ${ref} ';
+        if (_refProvider != null) {
+          exceptionMessage += 'using the provided ref provider';
+        } else {
+          exceptionMessage += _isSync ? 'due to null ref provider' : 'using the default HTTP(S) ref provider';
+        }
+        throw FormatExceptions.error(exceptionMessage);
       }
     };
 
-    final AsyncRetrievalOperation asyncRefSchemaOperation = _refProviderAsync == null
-        ? () => createSchemaFromUrl(ref.toString()).then(addSchemaFunction)
-        : () => _fetchRefSchemaFromAsyncProvider(ref).then(addSchemaFunction);
+    final AsyncRetrievalOperation asyncRefSchemaOperation = _refProvider != null
+        ? () => _fetchRefSchemaFromAsyncProvider(ref).then(addSchemaFunction)
+        : () => createSchemaFromUrl(ref.toString()).then(addSchemaFunction);
 
-    final SyncRetrievalOperation syncRefSchemaOperation = _refProvider != null
-        ? () => addSchemaFunction(_fetchRefSchemaFromProvider(ref))
-        : () => addSchemaFunction(_fetchAndCreateRefSchema(ref));
+    final SyncRetrievalOperation syncRefSchemaOperation =
+        _refProvider != null ? () => addSchemaFunction(_fetchRefSchemaFromSyncProvider(ref)) : null;
 
     /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
     _root._retrievalRequests.add(RetrievalRequest()
@@ -1467,7 +1391,7 @@ class JsonSchema {
       ref = _translateLocalRefToFullUri(ref);
 
       // Add retrievals to _root schema.
-      _addRefRetrievals(ref, path);
+      _addRefRetrievals(ref);
 
       // Schema Assignments get resolved later from the root schema.
       _schemaAssignments.add(() => assigner(_getSchemaFromPath(ref)));
@@ -1612,7 +1536,7 @@ class JsonSchema {
     final isRelativeFileUri = _inheritedUriBase != null && _inheritedUriBase.scheme.isEmpty;
     if (_ref.scheme.isNotEmpty || isRelativeFileUri) {
       // Add retrievals to _root schema.
-      _addRefRetrievals(_ref, _path);
+      _addRefRetrievals(_ref);
     } else {
       // Add _ref to _localRefs to be validated during schema path resolution.
       _root._localRefs.add(_ref);
