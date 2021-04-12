@@ -308,14 +308,8 @@ class Validator {
   }
 
   void _validateFormat(JsonSchema schema, Instance instance) {
-    if (instance.data is! String) {
-      _err(
-          '${instance.data} is type ${instance.data.runtimeType}; only inputs '
-          'of type String are accepted for format operations.',
-          instance.path,
-          schema.path);
-      return;
-    }
+    // Non-strings in formats should be ignored.
+    if (instance.data is! String) return;
 
     switch (schema.format) {
       case 'date-time':
