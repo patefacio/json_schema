@@ -224,7 +224,7 @@ class JsonSchema {
         // This is expected behavior.
       }
       _path = '#';
-      final String refString = '${_uri != null ? _uri : ''}$_path';
+      final String refString = '${_uri ?? ''}$_path';
       _addSchemaToRefMap(refString, this);
       _thisCompleter = Completer<JsonSchema>();
     } else {
@@ -450,13 +450,13 @@ class JsonSchema {
 
     // Follow JSON Pointer path of fragments if provided.
     if (pathUri.fragment.isNotEmpty) {
-      final List<String> fragments = pathUri.fragment.split('/');
-      if (fragments.length > 1) {
+      final List<String> fragments = Uri.parse(pathUri.fragment).pathSegments;
+      if (fragments.isNotEmpty) {
         // Start at the baseSchema.
         JsonSchema currentSchema = baseSchema;
 
-        // Skip first empty fragment and only iterate through supported keywords.
-        for (int i = 1; i < fragments.length; i++) {
+        // Iterate through supported keywords or custom properties.
+        for (int i = 0; i < fragments.length; i++) {
           final String fragment = fragments[i];
 
           /// Fetch the property getter from the [_baseAccessGetterMap].
@@ -476,7 +476,7 @@ class JsonSchema {
               // Fetched properties must be valid schemas.
               if (currentSchema is! JsonSchema) {
                 throw FormatException(
-                    'Property "$fragment/$propertyKey" must be a valid schema : ${currentSchema.runtimeType}');
+                    'Failed to get schema at path: "$fragment/$propertyKey". Property must be a valid schema : $currentSchema');
               }
             } else if (schemaValues is List<JsonSchema>) {
               // List properties use the following fragment to fetch the value by index.
@@ -486,12 +486,13 @@ class JsonSchema {
                 final int schemaIndex = int.parse(propertyIndex);
                 currentSchema = schemaValues[schemaIndex];
               } catch (e) {
-                throw FormatException('Unable to resolve index from "$fragment/$propertyIndex"');
+                throw FormatException(
+                    'Failed to get schema at path: "$fragment/$propertyIndex". Unable to resolve index.');
               }
 
               if (currentSchema is! JsonSchema) {
                 throw FormatException(
-                    'Property "$fragment/$propertyIndex" must be a valid schema : ${currentSchema.runtimeType}');
+                    'Failed to get schema at path: "$fragment/$propertyIndex". Property must be a valid schema : $currentSchema');
               }
             }
           } else {
@@ -504,7 +505,8 @@ class JsonSchema {
             }
             currentSchema = currentSchema._refMap[currentSchemaRefPath];
             if (currentSchema is! JsonSchema) {
-              throw FormatException('Custom property $fragment must be a valid schema : ${currentSchema.runtimeType}');
+              throw FormatException(
+                  'Failed to get schema at path: "$fragment". Custom property must be a valid schema, but got : $currentSchema');
             }
           }
 
@@ -553,12 +555,9 @@ class JsonSchema {
     final Uri baseUri = ref.removeFragment();
 
     // Fallback order for ref provider:
-    // 1. Full URI (example: localhost:1234/integer.json#/definitions/integer)
-    // 2. Base URI (example: localhost:1234/integer.json)
-    // 3. Base URI with empty fragment (example: localhost:1234/integer.json#)
-    final dynamic schemaDefinition = _refProvider.provide(ref.toString()) ??
-        _refProvider.provide(baseUri.toString()) ??
-        _refProvider.provide('${baseUri}#');
+    // 1. Base URI (example: localhost:1234/integer.json)
+    // 2. Base URI with empty fragment (example: localhost:1234/integer.json#)
+    final dynamic schemaDefinition = _refProvider.provide(baseUri.toString()) ?? _refProvider.provide('${baseUri}#');
 
     return _createAndResolveProvidedSchema(ref, schemaDefinition);
   }
@@ -572,12 +571,10 @@ class JsonSchema {
     final Uri baseUri = ref.removeFragment();
 
     // Fallback order for ref provider:
-    // 1. Full URI (example: localhost:1234/integer.json#/definitions/integer)
-    // 2. Base URI (example: localhost:1234/integer.json)
-    // 3. Base URI with empty fragment (example: localhost:1234/integer.json#)
-    final dynamic schemaDefinition = await _refProvider.provide(ref.toString()) ??
-        await _refProvider.provide(baseUri.toString()) ??
-        await _refProvider.provide('${baseUri}#');
+    // 1. Base URI (example: localhost:1234/integer.json)
+    // 2. Base URI with empty fragment (example: localhost:1234/integer.json#)
+    final dynamic schemaDefinition =
+        await _refProvider.provide(baseUri.toString()) ?? await _refProvider.provide('${baseUri}#');
 
     return _createAndResolveProvidedSchema(ref, schemaDefinition);
   }
