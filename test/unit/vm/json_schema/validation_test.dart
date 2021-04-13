@@ -463,4 +463,77 @@ void main([List<String> args]) {
     expect(schema.validate({"string": "a string", "integer": "a string"}), isFalse);
     expect(schema.validate({"string": "a string", "integer": 123}), isTrue);
   });
+
+  test('Recursive refs from a remote schema should be supported with a json provider', () async {
+    final RefProvider syncRefJsonProvider = RefProvider.syncJson((String ref) {
+      switch (ref) {
+        case 'http://localhost:1234/tree.json':
+          return {
+            "\$id": "http://localhost:1234/tree.json",
+            "description": "tree of nodes",
+            "type": "object",
+            "properties": {
+              "meta": {"type": "string"},
+              "nodes": {
+                "type": "array",
+                "items": {"\$ref": "node.json"}
+              }
+            },
+            "required": ["meta", "nodes"]
+          };
+        case 'http://localhost:1234/node.json':
+          return {
+            "\$id": "http://localhost:1234/node.json",
+            "description": "nodes",
+            "type": "object",
+            "properties": {
+              "value": {"type": "number"},
+              "subtree": {"\$ref": "tree.json"}
+            },
+            "required": ["value"]
+          };
+        default:
+          return null;
+      }
+    });
+
+    final schema = await JsonSchema.createSchema(
+      syncRefJsonProvider.provide('http://localhost:1234/tree.json'),
+      refProvider: syncRefJsonProvider,
+    );
+
+    expect(
+      schema.validate({
+        "meta": "a string",
+        "nodes": [
+          {
+            "value": 123,
+            "subtree": {"meta": "a string", "nodes": []}
+          }
+        ]
+      }),
+      isTrue,
+    );
+
+    expect(
+      schema.validate({
+        "meta": "a string",
+        "nodes": [
+          {
+            "value": 123,
+            "subtree": {
+              "meta": "a string",
+              "nodes": [
+                {
+                  "value": 123,
+                  "subtree": {"meta": 123, "nodes": []}
+                }
+              ]
+            }
+          }
+        ]
+      }),
+      isFalse,
+    );
+  });
 }
