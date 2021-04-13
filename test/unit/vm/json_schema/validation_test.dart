@@ -502,38 +502,35 @@ void main([List<String> args]) {
       refProvider: syncRefJsonProvider,
     );
 
-    expect(
-      schema.validate({
-        "meta": "a string",
-        "nodes": [
-          {
-            "value": 123,
-            "subtree": {"meta": "a string", "nodes": []}
-          }
-        ]
-      }),
-      isTrue,
-    );
+    final isValid = schema.validate({
+      "meta": "a string",
+      "nodes": [
+        {
+          "value": 123,
+          "subtree": {"meta": "a string", "nodes": []}
+        }
+      ]
+    });
 
-    expect(
-      schema.validate({
-        "meta": "a string",
-        "nodes": [
-          {
-            "value": 123,
-            "subtree": {
-              "meta": "a string",
-              "nodes": [
-                {
-                  "value": 123,
-                  "subtree": {"meta": 123, "nodes": []}
-                }
-              ]
-            }
+    final isInvalid = schema.validate({
+      "meta": "a string",
+      "nodes": [
+        {
+          "value": 123,
+          "subtree": {
+            "meta": "a string",
+            "nodes": [
+              {
+                "value": 123,
+                "subtree": {"meta": 123, "nodes": []}
+              }
+            ]
           }
-        ]
-      }),
-      isFalse,
-    );
+        }
+      ]
+    });
+
+    expect(isValid, isTrue);
+    expect(isInvalid, isFalse);
   });
 }
