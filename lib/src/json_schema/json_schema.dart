@@ -445,7 +445,7 @@ class JsonSchema {
       baseSchema = _refMap[basePathUri.toString()];
     } else {
       // If the _refMap does not contain basePathUri, the ref was never resolved during validation.
-      throw ArgumentError('Unable to resolve path $pathUri');
+      throw ArgumentError('Failed to get schema for path because the schema file ($basePathUri) could not be found. Unable to resolve path $pathUri');
     }
 
     // Follow JSON Pointer path of fragments if provided.
@@ -514,12 +514,12 @@ class JsonSchema {
           if (currentSchema.ref != null) {
             if (!refsEncountered.add(currentSchema.ref)) {
               // Throw if cycle is detected for currentSchema ref.
-              throw FormatException('Cycle detected encountering ref "${currentSchema.ref}"');
+              throw FormatException('Failed to get schema at path: "${currentSchema.ref}". Cycle detected.);
             }
 
             currentSchema = currentSchema._getSchemaFromPath(currentSchema.ref, refsEncountered);
             if (currentSchema == null) {
-              throw ArgumentError('Can\'t resolve path $pathUri');
+              throw ArgumentError('Failed to get schema at path: "$pathUri". Can\'t resolve reference within the schema.');
             }
           }
         }
