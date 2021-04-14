@@ -40,6 +40,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:json_pointer/json_pointer.dart';
 
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
@@ -471,7 +472,13 @@ class JsonSchema {
             } else if (schemaValues is Map<String, JsonSchema>) {
               // Map properties use the following fragment to fetch the value by key.
               i += 1;
-              final String propertyKey = fragments[i];
+              String propertyKey = fragments[i];
+              if (schemaValues[propertyKey] is! JsonSchema) {
+                try {
+                  propertyKey = Uri.decodeQueryComponent(propertyKey);
+                  propertyKey = unescape(propertyKey);
+                } catch (e) {}
+              }
               currentSchema = schemaValues[propertyKey];
 
               // Fetched properties must be valid schemas.
@@ -1515,7 +1522,7 @@ class JsonSchema {
   _setOneOf(dynamic value) => _validateListOfSchema('oneOf', value, (schema) => _oneOf.add(schema));
 
   /// Validate, calculate and set the value of the 'pattern' JSON Schema prop.
-  _setPattern(dynamic value) => _pattern = RegExp(TypeValidators.string('pattern', value));
+  _setPattern(dynamic value) => _pattern = RegExp(TypeValidators.string('pattern', value), unicode: true);
 
   /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
   _setPropertyNames(dynamic value) {
@@ -1656,8 +1663,9 @@ class JsonSchema {
   _setMinProperties(dynamic value) => _minProperties = TypeValidators.nonNegativeInt('minProperties', value);
 
   /// Validate, calculate and set the value of the 'patternProperties' JSON Schema prop.
-  _setPatternProperties(dynamic value) => (TypeValidators.object('patternProperties', value)).forEach((k, v) =>
-      _createOrRetrieveSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[RegExp(k)] = rhs));
+  _setPatternProperties(dynamic value) =>
+      (TypeValidators.object('patternProperties', value)).forEach((k, v) => _createOrRetrieveSchema(
+          '$_path/patternProperties/$k', v, (rhs) => _patternProperties[RegExp(k, unicode: true)] = rhs));
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
   _setRequired(dynamic value) =>
