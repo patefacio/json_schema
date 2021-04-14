@@ -260,12 +260,6 @@ void main([List<String> args]) {
     'integer : a bignum is an integer',
     'integer : a negative bignum is an integer',
     // Skip new tests from the spec that we don't pass yet:
-    'escaped pointer ref : slash invalid',
-    'escaped pointer ref : tilde invalid',
-    'escaped pointer ref : percent invalid',
-    'escaped pointer ref : slash valid',
-    'escaped pointer ref : tilde valid',
-    'escaped pointer ref : percent valid',
     'refs with quote : object with numbers is valid',
     'refs with quote : object with strings is invalid',
     'Proper UTF-16 surrogate pair handling: pattern : matches empty',
@@ -275,8 +269,8 @@ void main([List<String> args]) {
   ];
 
   // Run all tests asynchronously with no ref provider.
-  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  // runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
+  // runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
 
   // Run all tests synchronously with a sync ref provider.
   runAllTestsForDraftX(

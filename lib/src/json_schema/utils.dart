@@ -36,6 +36,7 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+import 'package:json_pointer/json_pointer.dart' as json_pointer;
 import 'package:uri/uri.dart' show UriTemplate;
 
 import 'package:json_schema/src/json_schema/constants.dart';
@@ -83,6 +84,11 @@ class JsonSchemaUtils {
       return uri.replace(pathSegments: segments);
     }
     return uri;
+  }
+
+  static String uriEncodeAndJsonPointerEscapePropertyName(String propertyName) {
+    final pointerEscapedKey = json_pointer.escape(propertyName);
+    return Uri.encodeComponent(pointerEscapedKey);
   }
 }
 

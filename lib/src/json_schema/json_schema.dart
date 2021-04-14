@@ -40,6 +40,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:json_pointer/json_pointer.dart';
 
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
@@ -471,7 +472,13 @@ class JsonSchema {
             } else if (schemaValues is Map<String, JsonSchema>) {
               // Map properties use the following fragment to fetch the value by key.
               i += 1;
-              final String propertyKey = fragments[i];
+              String propertyKey = fragments[i];
+              if (schemaValues[propertyKey] is! JsonSchema) {
+                try {
+                  propertyKey = Uri.decodeQueryComponent(propertyKey);
+                  propertyKey = unescape(propertyKey);
+                } catch (e) {}
+              }
               currentSchema = schemaValues[propertyKey];
 
               // Fetched properties must be valid schemas.
