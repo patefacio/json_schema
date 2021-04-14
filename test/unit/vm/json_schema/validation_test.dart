@@ -264,8 +264,18 @@ void main([List<String> args]) {
   ];
 
   // Run all tests asynchronously with no ref provider.
-  // runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
-  // runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+  );
 
   // Run all tests synchronously with a sync ref provider.
   runAllTestsForDraftX(
