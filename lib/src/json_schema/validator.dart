@@ -491,8 +491,7 @@ class Validator {
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.
     while (schema.ref != null) {
-      final String path = schema.root.endPath(schema.ref.toString());
-      schema = schema.root.refMap[path];
+      schema = schema.resolvePath(schema.ref);
     }
 
     /// If the [JsonSchema] is a bool, always return this value.

@@ -87,7 +87,7 @@ void main([List<String> args]) {
 
   final runAllTestsForDraftX =
       (SchemaVersion schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
-          {bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
+          {bool isSync = false, RefProvider refProvider}) {
     String shortSchemaVersion = schemaVersion.toString();
     if (schemaVersion == SchemaVersion.draft4) {
       shortSchemaVersion = 'draft4';
@@ -129,7 +129,7 @@ void main([List<String> args]) {
                   expect(validationResult, expectedResult);
                 } else {
                   final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProviderAsync)
+                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProvider)
                       .then((schema) {
                     validationResult = schema.validate(instance);
                     checkResult();
@@ -144,17 +144,17 @@ void main([List<String> args]) {
   };
 
   // Mock Ref Provider for refRemote tests. Emulates what createSchemaFromUrl would return.
-  final RefProvider syncRefProvider = (String ref) {
+  final RefProvider syncRefJsonProvider = RefProvider.syncJson((String ref) {
     switch (ref) {
       case 'http://localhost:1234/integer.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "type": "integer"
           }
-        '''));
+        ''');
         break;
-      case 'http://localhost:1234/subSchemas.json#/integer':
-        return JsonSchema.createSchema(json.decode(r'''
+      case 'http://localhost:1234/subSchemas.json':
+        return json.decode(r'''
           {
             "integer": {
               "type": "integer"
@@ -163,10 +163,10 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath('#/integer');
+        ''');
         break;
-      case 'http://localhost:1234/subSchemas.json#/refToInteger':
-        return JsonSchema.createSchema(json.decode(r'''
+      case 'http://localhost:1234/subSchemas.json':
+        return json.decode(r'''
           {
             "integer": {
               "type": "integer"
@@ -175,17 +175,17 @@ void main([List<String> args]) {
               "$ref": "#/integer"
             }
         }
-        ''')).resolvePath('#/refToInteger');
+        ''');
         break;
       case 'http://localhost:1234/folder/folderInteger.json':
-        return JsonSchema.createSchema(json.decode(r'''
+        return json.decode(r'''
           {
             "type": "integer"
           }
-        '''));
+        ''');
         break;
-      case 'http://localhost:1234/name.json#/definitions/orNull':
-        return JsonSchema.createSchema(json.decode(r'''
+      case 'http://localhost:1234/name.json':
+        return json.decode(r'''
           {
             "definitions": {
               "orNull": {
@@ -201,19 +201,52 @@ void main([List<String> args]) {
             },
             "type": "string"
           }
-        ''')).resolvePath('#/definitions/orNull');
+        ''');
         break;
+      case 'http://localhost:1234/baseUriChangeFolderInSubschema/folderInteger.json':
+        return json.decode('''
+          {
+              "type": "integer"
+          }
+        ''');
+      case 'http://localhost:1234/baseUriChangeFolder/folderInteger.json':
+        return json.decode('''
+          {
+              "type": "integer"
+          }
+        ''');
+      case 'http://localhost:1234/baseUriChange/folderInteger.json':
+        return json.decode('''
+          {
+              "type": "integer"
+          }
+        ''');
       default:
         return null;
         break;
     }
-  };
+  });
 
-  final RefProviderAsync asyncRefProvider = (String ref) async {
+  final RefProvider syncRefProvider = RefProvider.syncSchema((String ref) {
+    final schemaDef = syncRefJsonProvider.provide(ref);
+    if (schemaDef != null) {
+      return JsonSchema.createSchema(schemaDef);
+    }
+
+    return null;
+  });
+
+  final RefProvider asyncRefJsonProvider = RefProvider.asyncJson((String ref) async {
     // Mock a delayed response.
     await Duration(milliseconds: 1);
-    return syncRefProvider(ref);
-  };
+    return syncRefJsonProvider.provide(ref);
+  });
+
+  final RefProvider asyncRefProvider = RefProvider.asyncSchema((String ref) async {
+    // Mock a delayed response.
+    await Duration(milliseconds: 1);
+    return syncRefProvider.provide(ref);
+  });
 
   final List<String> commonSkippedFiles = const [];
 
@@ -239,12 +272,6 @@ void main([List<String> args]) {
     'Proper UTF-16 surrogate pair handling: pattern : matches two',
     'Proper UTF-16 surrogate pair handling: patternProperties : doesn\'t match two',
     'all integers are multiples of 0.5, if overflow is handled : valid if optional overflow handling is implemented',
-    'base URI change : base URI change ref valid',
-    'base URI change : base URI change ref invalid',
-    'base URI change - change folder : number is valid',
-    'base URI change - change folder : string is invalid',
-    'base URI change - change folder in subschema : number is valid',
-    'base URI change - change folder in subschema : string is invalid',
   ];
 
   // Run all tests asynchronously with no ref provider.
@@ -252,16 +279,72 @@ void main([List<String> args]) {
   runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
 
   // Run all tests synchronously with a sync ref provider.
-  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
-      isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
-      isSync: true, refProvider: syncRefProvider);
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefProvider,
+  );
+
+  // Run all tests synchronously with a sync json provider.
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefJsonProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    isSync: true,
+    refProvider: syncRefJsonProvider,
+  );
 
   // Run all tests asynchronously with an async ref provider.
-  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
-      refProviderAsync: asyncRefProvider);
-  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
-      refProviderAsync: asyncRefProvider);
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefProvider,
+  );
+
+  // Run all tests asynchronously with an async json provider.
+  runAllTestsForDraftX(
+    SchemaVersion.draft4,
+    allDraft4,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefJsonProvider,
+  );
+  runAllTestsForDraftX(
+    SchemaVersion.draft6,
+    allDraft6,
+    commonSkippedFiles,
+    commonSkippedTests,
+    refProvider: asyncRefJsonProvider,
+  );
 
   group('Schema self validation', () {
     for (final version in SchemaVersion.values.map((value) => value.toString())) {
@@ -379,5 +462,75 @@ void main([List<String> args]) {
     expect(schema.validate({"string": 123, "integer": 123}), isFalse);
     expect(schema.validate({"string": "a string", "integer": "a string"}), isFalse);
     expect(schema.validate({"string": "a string", "integer": 123}), isTrue);
+  });
+
+  test('Recursive refs from a remote schema should be supported with a json provider', () async {
+    final RefProvider syncRefJsonProvider = RefProvider.syncJson((String ref) {
+      switch (ref) {
+        case 'http://localhost:1234/tree.json':
+          return {
+            "\$id": "http://localhost:1234/tree.json",
+            "description": "tree of nodes",
+            "type": "object",
+            "properties": {
+              "meta": {"type": "string"},
+              "nodes": {
+                "type": "array",
+                "items": {"\$ref": "node.json"}
+              }
+            },
+            "required": ["meta", "nodes"]
+          };
+        case 'http://localhost:1234/node.json':
+          return {
+            "\$id": "http://localhost:1234/node.json",
+            "description": "nodes",
+            "type": "object",
+            "properties": {
+              "value": {"type": "number"},
+              "subtree": {"\$ref": "tree.json"}
+            },
+            "required": ["value"]
+          };
+        default:
+          return null;
+      }
+    });
+
+    final schema = await JsonSchema.createSchema(
+      syncRefJsonProvider.provide('http://localhost:1234/tree.json'),
+      refProvider: syncRefJsonProvider,
+    );
+
+    final isValid = schema.validate({
+      "meta": "a string",
+      "nodes": [
+        {
+          "value": 123,
+          "subtree": {"meta": "a string", "nodes": []}
+        }
+      ]
+    });
+
+    final isInvalid = schema.validate({
+      "meta": "a string",
+      "nodes": [
+        {
+          "value": 123,
+          "subtree": {
+            "meta": "a string",
+            "nodes": [
+              {
+                "value": 123,
+                "subtree": {"meta": 123, "nodes": []}
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(isValid, isTrue);
+    expect(isInvalid, isFalse);
   });
 }

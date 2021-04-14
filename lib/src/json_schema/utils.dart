@@ -69,7 +69,7 @@ class JsonSchemaUtils {
 
   static JsonSchema getSubMapFromFragment(JsonSchema schema, Uri uri) {
     if (uri.fragment?.isNotEmpty == true) {
-      schema = schema.resolvePath('#${uri.fragment}');
+      schema = schema.resolvePath(Uri.parse('#${uri.fragment}'));
     }
     return schema;
   }

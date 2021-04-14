@@ -606,13 +606,13 @@ void main() {
         }
       };
 
-      final RefProvider syncRefProvider = (String ref) {
+      final RefProvider syncRefProvider = RefProvider.syncSchema((String ref) {
         final refs = {
           'http://localhost/destination.json': {'maxLength': 2}
         };
 
         return JsonSchema.createSchema(refs[ref]);
-      };
+      });
 
       final schema = JsonSchema.createSchema(schemaJson, refProvider: syncRefProvider);
 
