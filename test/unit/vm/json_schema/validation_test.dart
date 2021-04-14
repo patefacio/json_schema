@@ -260,11 +260,6 @@ void main([List<String> args]) {
     'integer : a bignum is an integer',
     'integer : a negative bignum is an integer',
     // Skip new tests from the spec that we don't pass yet:
-    'refs with quote : object with numbers is valid',
-    'refs with quote : object with strings is invalid',
-    'Proper UTF-16 surrogate pair handling: pattern : matches empty',
-    'Proper UTF-16 surrogate pair handling: pattern : matches two',
-    'Proper UTF-16 surrogate pair handling: patternProperties : doesn\'t match two',
     'all integers are multiples of 0.5, if overflow is handled : valid if optional overflow handling is implemented',
   ];
 
