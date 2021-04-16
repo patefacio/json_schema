@@ -555,13 +555,27 @@ class JsonSchema {
         'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
-  JsonSchema _fetchRefSchemaFromSyncProvider(Uri ref) {
+  JsonSchema _checkRefMapForRef(Uri ref) {
+    final Uri baseUri = ref.removeFragment();
+
     // Always check refMap first.
-    if (_refMap.containsKey(ref.toString())) {
-      return _refMap[ref.toString()];
+    if (_refMap.containsKey('$baseUri#')) {
+      final JsonSchema baseSchema = _refMap['$baseUri#'];
+      if (ref.fragment.isNotEmpty) {
+        return baseSchema.resolvePath(Uri.parse('#${ref.fragment}'));
+      }
+
+      return baseSchema;
     }
 
+    return null;
+  }
+
+  JsonSchema _fetchRefSchemaFromSyncProvider(Uri ref) {
     final Uri baseUri = ref.removeFragment();
+
+    final JsonSchema refMapResult = _checkRefMapForRef(ref);
+    if (refMapResult != null) return refMapResult;
 
     // Fallback order for ref provider:
     // 1. Base URI (example: localhost:1234/integer.json)
@@ -572,12 +586,10 @@ class JsonSchema {
   }
 
   Future<JsonSchema> _fetchRefSchemaFromAsyncProvider(Uri ref) async {
-    // Always check refMap first.
-    if (_refMap.containsKey(ref.toString())) {
-      return _refMap[ref.toString()];
-    }
-
     final Uri baseUri = ref.removeFragment();
+
+    final JsonSchema refMapResult = _checkRefMapForRef(ref);
+    if (refMapResult != null) return refMapResult;
 
     // Fallback order for ref provider:
     // 1. Base URI (example: localhost:1234/integer.json)
